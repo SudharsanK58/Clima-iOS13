@@ -33,26 +33,34 @@ class WeatherViewController: UIViewController, UITextFieldDelegate{
     }
     
     func textFieldDidEndEditing(_ textField: UITextField) {
-        if textField.text == ""{
-            textField.placeholder = "Enter city name"
-            print("Nothing")
-        }else{
-            cityWeatherManger.getCityWeather(city: textField.text!) { cityName, temperature in
-                // Handle the returned values here
-                if let cityName = cityName, let temperature = temperature {
-                    // Access and use the cityName and temperature values
-                    DispatchQueue.main.async {
+        if let city = textField.text, !city.isEmpty {
+            cityWeatherManger.getCityWeather(city: city) { cityName, temperature, iconURL in
+                DispatchQueue.main.async {
+                    if let cityName = cityName, let temperature = temperature {
                         self.cityLabel.text = cityName
                         self.temperatureLabel.text = "\(temperature)"
+                        
+                        if let iconURL = iconURL {
+                            URLSession.shared.dataTask(with: iconURL) { data, response, error in
+                                if let data = data {
+                                    DispatchQueue.main.async {
+                                        self.conditionImageView.image = UIImage(data: data)
+                                    }
+                                }
+                            }.resume()
+                        }
+                    } else {
+                        print("Failed to retrieve city weather.")
                     }
-                } else {
-                    // Handle the case when cityName or temperature is nil
-                    print("Failed to retrieve city weather.")
                 }
             }
+
+        } else {
+            textField.placeholder = "Enter city name"
         }
-            inputCityText.text = ""
-        }
+        textField.text = ""
+    }
+
     
 }
 
