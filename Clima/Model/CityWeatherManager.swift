@@ -45,6 +45,7 @@ struct CityWeatherManager {
                 let temperature = weatherData.current.temp_c
                 let iconRelativeURL = weatherData.current.condition.icon
                 let absoluteIconURL = convertToAbsoluteURL(relativeURL: iconRelativeURL)
+                print(absoluteIconURL!)
                 completion(cityName, temperature, absoluteIconURL)
             } catch {
                 print("Error decoding data: \(error.localizedDescription)")
@@ -57,6 +58,38 @@ struct CityWeatherManager {
         let urlString = "https:" + relativeURL
         return URL(string: urlString)
     }
-
+    
+    func fetchAutocompleteResults(searchText: String) {
+        let apiKey = "27dc28c8f8e648ce998110334231805"
+        let urlString = "https://api.weatherapi.com/v1/search.json?key=\(apiKey)&q=\(searchText)"
+        
+        guard let url = URL(string: urlString) else {
+            print("Invalid URL")
+            return
+        }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            if let error = error {
+                print("Error: \(error.localizedDescription)")
+                return
+            }
+            
+            guard let data = data else {
+                print("No data received")
+                return
+            }
+            
+            do {
+                let decoder = JSONDecoder()
+                let results = try decoder.decode([AutocompleteResult].self, from: data)
+                
+                let names = results.map { $0.name }
+                print(names)
+                // Update your UI with the autocomplete results
+            } catch {
+                print("Error decoding data: \(error.localizedDescription)")
+            }
+        }.resume()
+    }
     
 }
