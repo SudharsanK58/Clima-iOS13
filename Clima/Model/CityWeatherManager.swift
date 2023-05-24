@@ -45,7 +45,6 @@ struct CityWeatherManager {
                 let temperature = weatherData.current.temp_c
                 let iconRelativeURL = weatherData.current.condition.icon
                 let absoluteIconURL = convertToAbsoluteURL(relativeURL: iconRelativeURL)
-                print(absoluteIconURL!)
                 completion(cityName, temperature, absoluteIconURL)
             } catch {
                 print("Error decoding data: \(error.localizedDescription)")

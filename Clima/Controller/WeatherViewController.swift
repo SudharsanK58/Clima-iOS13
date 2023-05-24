@@ -7,8 +7,9 @@
 //
 
 import UIKit
+import CoreLocation
 
-class WeatherViewController: UIViewController, UITextFieldDelegate{
+class WeatherViewController: UIViewController, UITextFieldDelegate,CLLocationManagerDelegate{
     
     @IBOutlet weak var inputCityText: UITextField!
     @IBOutlet weak var conditionImageView: UIImageView!
@@ -16,10 +17,13 @@ class WeatherViewController: UIViewController, UITextFieldDelegate{
     @IBOutlet weak var cityLabel: UILabel!
     var weatherData: WeatherApiData?
     var cityWeatherManger = CityWeatherManager()
+    let locationManager = CLLocationManager()
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         inputCityText.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.delegate = self
     }
     
     
@@ -69,5 +73,48 @@ class WeatherViewController: UIViewController, UITextFieldDelegate{
             
             return true
         }
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        switch status {
+        case .authorizedWhenInUse, .authorizedAlways:
+            print("Location permission granted.")
+            locationManager.startUpdatingLocation()
+        case .denied, .restricted:
+            print("Location permission denied.")
+            showLocationPermissionDeniedAlert()
+            // Handle denied or restricted case
+        case .notDetermined:
+            print("Location permission not determined.")
+            // Handle not determined case
+        default:
+            break
+        }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        locationManager.stopUpdatingLocation()
+        if let location = locations.last {
+            let latitude = location.coordinate.latitude
+            let longitude = location.coordinate.longitude
+            print("Latitude: \(latitude), Longitude: \(longitude)")
+            // Use the latitude and longitude values as needed
+        }
+    }
+    
+    func showLocationPermissionDeniedAlert() {
+        let alert = UIAlertController(title: "Location Access Denied", message: "Please grant permission to access your location in the app settings.", preferredStyle: .alert)
+        
+        alert.addAction(UIAlertAction(title: "Settings", style: .default, handler: { _ in
+            // Open app settings
+            if let appSettingsURL = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(appSettingsURL, options: [:], completionHandler: nil)
+            }
+        }))
+        
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        
+        present(alert, animated: true, completion: nil)
+    }
+
+
 }
 
